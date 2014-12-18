@@ -822,6 +822,42 @@ var _ = Describe("Connection", func() {
 		})
 	})
 
+	Describe("Killing and Interrupting", func() {
+		BeforeEach(func() {
+			server.AppendHandlers(
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("DELETE", "/containers/foo-handle/processes/42"),
+					func(w http.ResponseWriter, r *http.Request) {
+						w.WriteHeader(http.StatusAccepted)
+						w.Write([]byte("{}"))
+					},
+				),
+			)
+		})
+
+		It("sends the appropriate payload", func() {
+			Ω(connection.Kill("foo-handle", 42)).Should(Succeed())
+		})
+
+		Context("when an error occurs", func() {
+			BeforeEach(func() {
+				server.AppendHandlers(
+					ghttp.CombineHandlers(
+						ghttp.VerifyRequest("DELETE", "/containers/foo-handle/processes/42"),
+						func(w http.ResponseWriter, r *http.Request) {
+							w.WriteHeader(http.StatusInternalServerError)
+							w.Write([]byte("Oh no"))
+						},
+					),
+				)
+			})
+
+			It("returns an error", func() {
+				Ω(connection.Kill("foo-handle", 42)).ShouldNot(Succeed())
+			})
+		})
+	})
+
 	Describe("Running", func() {
 		stdin := protocol.ProcessPayload_stdin
 		stdout := protocol.ProcessPayload_stdout
