@@ -69,6 +69,7 @@ type Process interface {
 	ID() uint32
 	Wait() (int, error)
 	SetTTY(TTYSpec) error
+	Kill() error
 }
 
 type PortMapping struct {

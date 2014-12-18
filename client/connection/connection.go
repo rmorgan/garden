@@ -54,7 +54,6 @@ type Connection interface {
 
 	Run(handle string, spec api.ProcessSpec, io api.ProcessIO) (api.Process, error)
 	Attach(handle string, processID uint32, io api.ProcessIO) (api.Process, error)
-	Kill(handle string, processID uint32) error
 
 	NetIn(handle string, hostPort, containerPort uint32) (uint32, uint32, error)
 	NetOut(handle string, network string, port uint32) error
@@ -335,22 +334,6 @@ func (c *connection) Attach(handle string, processID uint32, processIO api.Proce
 	go p.streamPayloads(decoder, processIO)
 
 	return p, nil
-}
-
-func (c *connection) Kill(handle string, processID uint32) error {
-	return c.do(
-		routes.Kill,
-		&protocol.SignalProcessRequest{
-			Handle:    proto.String(handle),
-			ProcessId: proto.Uint32(processID),
-		},
-		&protocol.SignalProcessResponse{},
-		rata.Params{
-			"handle": handle,
-			"pid":    fmt.Sprintf("%d", processID),
-		},
-		nil,
-	)
 }
 
 func (c *connection) NetIn(handle string, hostPort, containerPort uint32) (uint32, uint32, error) {

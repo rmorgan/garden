@@ -11,6 +11,7 @@ import (
 )
 
 var stdin = protocol.ProcessPayload_stdin
+var sigKill = protocol.ProcessPayload_kill
 
 type processStream struct {
 	id   uint32
@@ -47,6 +48,13 @@ func (s *processStream) SetTTY(spec api.TTYSpec) error {
 	return s.sendPayload(&protocol.ProcessPayload{
 		ProcessId: proto.Uint32(s.id),
 		Tty:       tty,
+	})
+}
+
+func (s *processStream) Kill() error {
+	return s.sendPayload(&protocol.ProcessPayload{
+		ProcessId: proto.Uint32(s.id),
+		Signal:    &sigKill,
 	})
 }
 
